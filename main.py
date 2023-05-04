@@ -18,6 +18,7 @@ def getGPTmove(moves, legalMoves):
             )
             if chess.Move.from_uci(selectedMove) in legalMoves:
                 board.push_san(selectedMove)
+                moveCount += 1
                 print(selectedMove)
                 break
         except ValueError:
@@ -35,6 +36,7 @@ def getPLRmove(legalMoves):
                 print("Please Enter a Legal Move\n")
             else:
                 board.push_san(plrMove)
+                moveCount += 1
                 break
         except ValueError:
             print("Please Enter a String")
@@ -58,7 +60,5 @@ while gameComplete(board) == -1:
     print(board)
     if moveCount % 2 == 0:
         moves.append(getPLRmove(board.legal_moves))
-        moveCount += 1
     elif moveCount % 2 != 0:
         moves.append(getGPTmove(moves, board.legal_moves))
-        moveCount += 1
