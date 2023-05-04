@@ -1,7 +1,8 @@
+import config as config
 import openai
 import chess
 
-openai.api_key = "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"
+openai.api_key = config.APIKEY
 
 board = chess.Board()
 moves = []
