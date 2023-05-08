@@ -1,34 +1,94 @@
-import config as config
-import openai
 import chess
+import chess.svg
+import chess.polyglot
+import random
+from copy import deepcopy
+from tkinter import *
+from tkhtmlview import HTMLLabel
 
-openai.api_key = config.APIKEY
+reader = chess.polyglot.open_reader("data/polyglot/baron30.bin")
 
-board = chess.Board()
-moves = []
+currBoard = chess.Board()
+print(currBoard.legal_moves)
 moveCount = 0
 
-def getGPTmove(moves, legalMoves):
-    while True:
-        try:
-            selectedMove = openai.Completion.create(
-                model="gpt-3.5-turbo",
-                temperature=0,
-                max_tokens=6,
-                prompt="Play Chess Against Me: " + ', '.join(moves),
-            )
-            print(selectedMove)
-            if chess.Move.from_uci(selectedMove) in legalMoves:
-                board.push_san(selectedMove)
-                moveCount += 1
-                print(selectedMove)
-                break
-        except ValueError:
-            print("AI Entered Invalid String")
-            print(selectedMove)
-            continue
+pieceValues = {'p': -1,
+          'n': -3,
+          'b': -3,
+          'r': -5,
+          'q': -9,
+          'k': 0,
+          'P': 1,
+          'N': 3,
+          'B': 3,
+          'R': 5,
+          'Q': 9,
+          'K': 0,
+          
+          }
 
-    return selectedMove
+
+def boardEval(BOARD):
+    eval = 0
+    pieces = BOARD.piece_map()
+    for key in pieces:
+        eval += pieceValues[str(pieces[key])]
+    return eval
+
+def spaceEval(BOARD):
+    noMoves = len(list(BOARD.legal_moves))
+    value = (noMoves / (20 + noMoves))
+
+    if BOARD.turn == True:
+        return value
+    else:
+        return -value
+
+def getBestMove(BOARD, DEPTH):
+    openingMove = reader.get(BOARD)
+    if openingMove == None:
+        pass
+    else:
+        return openingMove.move
+    
+    posMoves = list(BOARD.legal_moves)
+    scores = []
+
+    for move in posMoves:
+        tmpBoard = deepcopy(BOARD)
+        tmpBoard.push(move)
+
+        outcome = tmpBoard.outcome()
+
+        if outcome == None:
+            if DEPTH > 1:
+                tmpBestMove = getBestMove(tmpBoard, DEPTH-1)
+                tmpBoard.push(tmpBestMove)
+            scores.append(boardEval(tmpBoard))
+
+        elif tmpBoard.is_checkmate():
+            return move
+        
+        else:
+            # Super High Number to Discourage Draws
+            val = 1000
+            if BOARD.turn == True:
+                scores.append(-val)
+            else:
+                scores.append(val)
+        
+        scores[-1] = scores[-1] + spaceEval(tmpBoard)
+
+    
+    if BOARD.turn == True:
+        bestMove = posMoves[scores.index(max(scores))]
+    else:
+        bestMove = posMoves[scores.index(min(scores))]
+
+    return bestMove
+
+def engineDepth(BOARD, DEPTH):
+    return(getBestMove(BOARD, DEPTH)) 
 
 def getPLRmove(legalMoves): 
     while True:
@@ -37,8 +97,7 @@ def getPLRmove(legalMoves):
             if chess.Move.from_uci(plrMove) not in legalMoves:
                 print("Please Enter a Legal Move\n")
             else:
-                board.push_san(plrMove)
-                moveCount += 1
+                currBoard.push_san(plrMove)
                 break
         except ValueError:
             print("Please Enter a String")
@@ -57,10 +116,14 @@ def gameComplete(board):
             return 2
     else:
         return -1
-            
-while gameComplete(board) == -1:
-    print(board)
+
+moveCount = 0
+
+while gameComplete(currBoard) == -1:
+    print(currBoard)
     if moveCount % 2 == 0:
-        moves.append(getPLRmove(board.legal_moves))
+        getPLRmove(currBoard.legal_moves)
+        moveCount += 1
     elif moveCount % 2 != 0:
-        moves.append(getGPTmove(moves, board.legal_moves))
+        currBoard.push(engineDepth(currBoard, 3))
+        moveCount += 1
