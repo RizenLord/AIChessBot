@@ -1,15 +1,14 @@
 import chess
 import chess.svg
 import chess.polyglot
-import random
+import pygame
+import math
 from copy import deepcopy
-from tkinter import *
-from tkhtmlview import HTMLLabel
 
+# Opening Book, Purely so the Engine can make intelligent Opening Moves
 reader = chess.polyglot.open_reader("data/polyglot/baron30.bin")
 
 currBoard = chess.Board()
-print(currBoard.legal_moves)
 moveCount = 0
 
 pieceValues = {'p': -1,
@@ -97,7 +96,7 @@ def getPLRmove(legalMoves):
             if chess.Move.from_uci(plrMove) not in legalMoves:
                 print("Please Enter a Legal Move\n")
             else:
-                currBoard.push(plrMove)
+                currBoard.push_san(plrMove)
                 break
         except ValueError:
             print("Please Enter a String")
