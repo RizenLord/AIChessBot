@@ -97,7 +97,7 @@ def getPLRmove(legalMoves):
             if chess.Move.from_uci(plrMove) not in legalMoves:
                 print("Please Enter a Legal Move\n")
             else:
-                currBoard.push_san(plrMove)
+                currBoard.push(plrMove)
                 break
         except ValueError:
             print("Please Enter a String")
