@@ -28,19 +28,19 @@ pieces = {'p': pygame.image.load('data/images/b_pawn.png'),
           'K': pygame.image.load('data/images/w_king.png'),
           
           }
-cb = pygame.image.load('data/images/cBoard.png')
+
 wSquare = pygame.image.load('data/images/w_square.png')
 dSquare = pygame.image.load('data/images/d_square.png')
+
 startPos = list(chess.STARTING_BOARD_FEN.split("/"))
 screen.fill("black")
+started = False
 
-currBoardFEN = list((currBoard.fen()).split("/"))
-
-def drawPieces(pos):
-    print(pos)
+def drawPieces(pos, started=False):
+    if started:
+        drawBoard()
     x = 20
     y = -40
-    currRow = ""
     for i in range(len(pos)):
         x = 20
         y += 60
@@ -53,9 +53,10 @@ def drawPieces(pos):
             if currRow[j] in pieces.keys():
                 screen.blit(pieces[currRow[j]], (x,y))
             elif currRow[j].isdigit():
-                print(currRow[j])
-                x += ((int(currRow[j])) * 60)
-                print(x)
+                if currRow[j] == '8':
+                    break
+                else:
+                    x += ((int(currRow[j])) * 60) - 60
             x += 60
 
 def drawBoard():
@@ -70,7 +71,15 @@ def drawBoard():
             else:
                 screen.blit(dSquare, (x,y))
             x += 60
-    drawPieces(startPos)
+    started = True
+    if started == False:
+        drawPieces(startPos, False)
+    started = True
+
+
+drawBoard()
+started = True
+pygame.display.flip()
 
 while running:
     # poll for events
@@ -88,14 +97,9 @@ while running:
     # Bottom Left 20, 500
     
     #Rendering Board
-    
         
-
-    def movePiece(initial, final):
-        return True
     
-    drawBoard()
-    pygame.display.flip()
+    pygame.display.update()
 
     # Opening Book, Purely so the Engine can make intelligent Opening Moves
     reader = chess.polyglot.open_reader("data/polyglot/baron30.bin")
@@ -205,20 +209,14 @@ while running:
         else:
             return -1
 
-    moveCount = 0
-
-    while gameComplete(currBoard) == -1:
-        print(currBoard)
-        if moveCount % 2 == 0:
-            getPLRmove(currBoard.legal_moves)
-            currBoardFEN = list((currBoard.fen()).split("/"))
-            drawPieces(currBoardFEN)
-            moveCount += 1
-        elif moveCount % 2 != 0:
-            currBoard.push(engineDepth(currBoard, 3))
-            currBoardFEN = list((currBoard.fen()).split("/"))
-            drawPieces(currBoardFEN)
-            moveCount += 1
-
-
+    if moveCount % 2 == 0:
+        getPLRmove(currBoard.legal_moves)
+        currBoardFEN = list((currBoard.fen()).split("/"))
+        drawPieces(currBoardFEN, True)
+        moveCount += 1
+    elif moveCount % 2 != 0:
+        currBoard.push(engineDepth(currBoard, 3))
+        currBoardFEN = list((currBoard.fen()).split("/"))
+        drawPieces(currBoardFEN, True)
+        moveCount += 1
 pygame.quit()
