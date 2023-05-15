@@ -213,7 +213,7 @@ def main(board, aiColor):
                 if event.type == pygame.QUIT:
                     playing = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    drawBoard(False)
+                    drawPieces(boardPos, True)
                     mousePos = pygame.mouse.get_pos()
 
                     squareSelected = ((math.floor((mousePos[0] - 20)/60)) ,(math.floor((mousePos[1]- 20)/60)))
@@ -245,7 +245,7 @@ def main(board, aiColor):
                                     after = i.to_square
                                     afterX = (60*(after%8)) + 20
                                     afterY = (60*(7-after//8)) + 20
-
+                                    
                                     pygame.draw.rect(screen,"blue",pygame.Rect(afterX,afterY,60,60),5)
                                     pygame.display.flip()
                             posMoves = [a.to_square for a in moves]
@@ -257,4 +257,3 @@ def main(board, aiColor):
     pygame.quit()
 
 main(currBoard, False)
-pygame.display.update()
