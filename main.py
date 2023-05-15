@@ -4,7 +4,7 @@ import chess.polyglot
 import pygame
 import math
 from copy import deepcopy
-
+import time
 
 pygame.init()
 screen = pygame.display.set_mode((820, 520))
@@ -180,19 +180,6 @@ def getPLRmove(legalMoves):
                 continue
         return plrMove
 
-def gameComplete(board):
-        board = board
-        outcome = board.outcome()
-        if outcome:
-            if outcome.winner == chess.WHITE:
-                return 1
-            elif outcome.winner == chess.BLACK:
-                return 0
-            else:
-                return 2
-        else:
-            return -1
-
 def main(board, aiColor):
     playing = True
     boardPos = list((board.fen()).split("/"))
@@ -203,9 +190,17 @@ def main(board, aiColor):
         drawPieces(boardPos)
 
         if board.turn == aiColor:
-            board.push(engineDepth(currBoard, 3))
+            aiMove = engineDepth(currBoard, 3)
+            time.sleep(1)
+            board.push(aiMove)
             boardPos = list((board.fen()).split("/"))
             drawPieces(boardPos, True)
+            aiBeforeX = (60*((aiMove.from_square)%8)) + 20
+            aiBeforeY = (60*(7-(aiMove.from_square)//8)) + 20
+            aiAfterX = (60*((aiMove.to_square)%8)) + 20
+            aiAfterY = (60*(7-(aiMove.to_square)//8)) + 20
+            pygame.draw.rect(screen,"green",pygame.Rect(aiBeforeX, aiBeforeY,60,60),5)
+            pygame.draw.rect(screen,"green",pygame.Rect(aiAfterX, aiAfterY,60,60),5)
             pygame.display.flip()
         else:
 
@@ -224,8 +219,15 @@ def main(board, aiColor):
                     if index in posMoves:
                         move = moves[posMoves.index(index)]
                         board.push(move)
+                        before = move.from_square
+                        beforeX = (60*(before%8)) + 20
+                        beforeY = (60*(7-before//8)) + 20
+                        MafterX = (60*((move.to_square)%8)) + 20
+                        MafterY = (60*(7-(move.to_square)//8)) + 20
                         boardPos = list((board.fen()).split("/"))
                         drawPieces(boardPos, True)
+                        pygame.draw.rect(screen,"green",pygame.Rect(beforeX, beforeY,60,60),5)
+                        pygame.draw.rect(screen,"green",pygame.Rect(MafterX, MafterY,60,60),5)
                         pygame.display.flip()
 
                         index = None
