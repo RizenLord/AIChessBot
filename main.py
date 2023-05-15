@@ -38,7 +38,7 @@ started = False
 
 def drawPieces(pos, started=False):
     if started:
-        drawBoard()
+        drawBoard(True)
     x = 20
     y = -40
     for i in range(len(pos)):
@@ -59,7 +59,7 @@ def drawPieces(pos, started=False):
                     x += ((int(currRow[j])) * 60) - 60
             x += 60
 
-def drawBoard():
+def drawBoard(started=False):
     x = 20
     y = -40
     for i in range(8):
@@ -71,32 +71,26 @@ def drawBoard():
             else:
                 screen.blit(dSquare, (x,y))
             x += 60
-    started = True
     if started == False:
         drawPieces(startPos, False)
     started = True
 
 
-drawBoard()
+drawBoard(False)
 started = True
 pygame.display.flip()
 
 while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-    # fill the screen with a color to wipe away anything from last frame
-
-    # RENDER YOUR GAME HERE
     
+    # Board Coords
     # Top Left 20, 20 
     # Bottom Right 500, 500
     # Top Right 500, 20
     # Bottom Left 20, 500
     
-    #Rendering Board
         
     
     pygame.display.update()
