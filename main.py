@@ -34,6 +34,13 @@ dSquare = pygame.image.load('data/images/d_square.png')
 startPos = list(chess.STARTING_BOARD_FEN.split("/"))
 screen.fill("black")
 
+    # Board Coords
+    # Top Left 20, 20 
+    # Bottom Right 500, 500
+    # Top Right 500, 20
+    # Bottom Left 20, 500
+
+        
 def drawPieces(pos, started=False):
     if started:
         drawBoard(True)
@@ -76,66 +83,6 @@ def drawBoard(started=False):
 
 drawBoard(False)
 pygame.display.flip()
-
-def main(board):
-    playing = True
-    boardPos = list((board.fen()).split("/"))
-
-    posMoves = []
-
-    while playing:
-        drawPieces(boardPos)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                playing = False
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                drawBoard(False)
-                mousePos = pygame.mouse.get_pos()
-
-                squareSelected = ((math.floor((mousePos[0] - 20)/60)) ,(math.floor((mousePos[1]- 20)/60)))
-                print(squareSelected)
-                index = (7-squareSelected[1])*8+(squareSelected[0])
-                print(index)
-
-                if index in posMoves:
-                    move = moves[posMoves.index(index)]
-                    board.push(move)
-
-                    index = None
-                    posMoves = []
-                
-                else:
-                    pieceSelected = board.piece_at(index)
-
-                    if pieceSelected == None:
-                        pass
-                    else:
-                        legalMoves = list(board.legal_moves)
-                        moves = []
-                        for i in legalMoves:
-                            if i.from_square == index:
-                                moves.append(i)
-                                after = i.to_square
-                                afterX = (60*(after%8)) + 20
-                                afterY = (60*(7-after//8)) + 20
-
-                                pygame.draw.rect(screen,"blue",pygame.Rect(afterX,afterY,60,60),5)
-                                pygame.display.flip()
-                        posMoves = [a.to_square for a in moves]
-        if board.outcome() != None:
-            print(board.outcome())
-            playing = False
-            print(board)
-    pygame.quit()
-
-main(currBoard)
-    # Board Coords
-    # Top Left 20, 20 
-    # Bottom Right 500, 500
-    # Top Right 500, 20
-    # Bottom Left 20, 500
-    
         
 
     # Opening Book, Purely so the Engine can make intelligent Opening Moves
@@ -246,14 +193,68 @@ def gameComplete(board):
         else:
             return -1
 
-if moveCount % 2 == 0:
-        getPLRmove(currBoard.legal_moves)
-        currBoardFEN = list((currBoard.fen()).split("/"))
-        drawPieces(currBoardFEN, True)
-        moveCount += 1
-elif moveCount % 2 != 0:
-        currBoard.push(engineDepth(currBoard, 3))
-        currBoardFEN = list((currBoard.fen()).split("/"))
-        drawPieces(currBoardFEN, True)
-        moveCount += 1
-pygame.quit()
+def main(board, aiColor):
+    playing = True
+    boardPos = list((board.fen()).split("/"))
+
+    posMoves = []
+
+    while playing:
+        drawPieces(boardPos)
+
+        if board.turn == aiColor:
+            board.push(engineDepth(currBoard, 3))
+            boardPos = list((board.fen()).split("/"))
+            drawPieces(boardPos, True)
+            pygame.display.flip()
+        else:
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    playing = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    drawBoard(False)
+                    mousePos = pygame.mouse.get_pos()
+
+                    squareSelected = ((math.floor((mousePos[0] - 20)/60)) ,(math.floor((mousePos[1]- 20)/60)))
+                    #print(squareSelected)
+                    index = (7-squareSelected[1])*8+(squareSelected[0])
+                    #print(index)
+
+                    if index in posMoves:
+                        move = moves[posMoves.index(index)]
+                        board.push(move)
+                        boardPos = list((board.fen()).split("/"))
+                        drawPieces(boardPos, True)
+                        pygame.display.flip()
+
+                        index = None
+                        posMoves = []
+                    
+                    else:
+                        pieceSelected = board.piece_at(index)
+
+                        if pieceSelected == None:
+                            pass
+                        else:
+                            legalMoves = list(board.legal_moves)
+                            moves = []
+                            for i in legalMoves:
+                                if i.from_square == index:
+                                    moves.append(i)
+                                    after = i.to_square
+                                    afterX = (60*(after%8)) + 20
+                                    afterY = (60*(7-after//8)) + 20
+
+                                    pygame.draw.rect(screen,"blue",pygame.Rect(afterX,afterY,60,60),5)
+                                    pygame.display.flip()
+                            posMoves = [a.to_square for a in moves]
+                            #print(posMoves)
+            if board.outcome() != None:
+                print(board.outcome())
+                playing = False
+                print(board)
+    pygame.quit()
+
+main(currBoard, False)
+pygame.display.update()
