@@ -9,7 +9,6 @@ from copy import deepcopy
 pygame.init()
 screen = pygame.display.set_mode((820, 520))
 pygame.display.set_caption('Humanized AI Engine')
-running = True
 
 currBoard = chess.Board()
 moveCount = 0
@@ -34,7 +33,6 @@ dSquare = pygame.image.load('data/images/d_square.png')
 
 startPos = list(chess.STARTING_BOARD_FEN.split("/"))
 screen.fill("black")
-started = False
 
 def drawPieces(pos, started=False):
     if started:
@@ -77,14 +75,61 @@ def drawBoard(started=False):
 
 
 drawBoard(False)
-started = True
 pygame.display.flip()
 
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-    
+def main(board):
+    playing = True
+    boardPos = list((board.fen()).split("/"))
+
+    posMoves = []
+
+    while playing:
+        drawPieces(boardPos)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                playing = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                drawBoard(False)
+                mousePos = pygame.mouse.get_pos()
+
+                squareSelected = ((math.floor((mousePos[0] - 20)/60)) ,(math.floor((mousePos[1]- 20)/60)))
+                print(squareSelected)
+                index = (7-squareSelected[1])*8+(squareSelected[0])
+                print(index)
+
+                if index in posMoves:
+                    move = moves[posMoves.index(index)]
+                    board.push(move)
+
+                    index = None
+                    posMoves = []
+                
+                else:
+                    pieceSelected = board.piece_at(index)
+
+                    if pieceSelected == None:
+                        pass
+                    else:
+                        legalMoves = list(board.legal_moves)
+                        moves = []
+                        for i in legalMoves:
+                            if i.from_square == index:
+                                moves.append(i)
+                                after = i.to_square
+                                afterX = (60*(after%8)) + 20
+                                afterY = (60*(7-after//8)) + 20
+
+                                pygame.draw.rect(screen,"blue",pygame.Rect(afterX,afterY,60,60),5)
+                                pygame.display.flip()
+                        posMoves = [a.to_square for a in moves]
+        if board.outcome() != None:
+            print(board.outcome())
+            playing = False
+            print(board)
+    pygame.quit()
+
+main(currBoard)
     # Board Coords
     # Top Left 20, 20 
     # Bottom Right 500, 500
@@ -92,13 +137,11 @@ while running:
     # Bottom Left 20, 500
     
         
-    
-    pygame.display.update()
 
     # Opening Book, Purely so the Engine can make intelligent Opening Moves
-    reader = chess.polyglot.open_reader("data/polyglot/baron30.bin")
+reader = chess.polyglot.open_reader("data/polyglot/baron30.bin")
 
-    pieceValues = {'p': -1,
+pieceValues = {'p': -1,
             'n': -3,
             'b': -3,
             'r': -5,
@@ -114,14 +157,14 @@ while running:
             }
 
 
-    def boardEval(BOARD):
+def boardEval(BOARD):
         eval = 0
         pieces = BOARD.piece_map()
         for key in pieces:
             eval += pieceValues[str(pieces[key])]
         return eval
 
-    def spaceEval(BOARD):
+def spaceEval(BOARD):
         noMoves = len(list(BOARD.legal_moves))
         value = (noMoves / (20 + noMoves))
 
@@ -130,7 +173,7 @@ while running:
         else:
             return -value
 
-    def getBestMove(BOARD, DEPTH):
+def getBestMove(BOARD, DEPTH):
         openingMove = reader.get(BOARD)
         if openingMove == None:
             pass
@@ -173,10 +216,10 @@ while running:
 
         return bestMove
 
-    def engineDepth(BOARD, DEPTH):
+def engineDepth(BOARD, DEPTH):
         return(getBestMove(BOARD, DEPTH)) 
 
-    def getPLRmove(legalMoves): 
+def getPLRmove(legalMoves): 
         while True:
             try:
                 plrMove = input("Your Move: ")
@@ -190,7 +233,7 @@ while running:
                 continue
         return plrMove
 
-    def gameComplete(board):
+def gameComplete(board):
         board = board
         outcome = board.outcome()
         if outcome:
@@ -203,12 +246,12 @@ while running:
         else:
             return -1
 
-    if moveCount % 2 == 0:
+if moveCount % 2 == 0:
         getPLRmove(currBoard.legal_moves)
         currBoardFEN = list((currBoard.fen()).split("/"))
         drawPieces(currBoardFEN, True)
         moveCount += 1
-    elif moveCount % 2 != 0:
+elif moveCount % 2 != 0:
         currBoard.push(engineDepth(currBoard, 3))
         currBoardFEN = list((currBoard.fen()).split("/"))
         drawPieces(currBoardFEN, True)
