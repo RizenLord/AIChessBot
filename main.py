@@ -7,11 +7,14 @@ from copy import deepcopy
 import time
 
 pygame.init()
-screen = pygame.display.set_mode((820, 520))
-pygame.display.set_caption('Humanized AI Engine')
+screen = pygame.display.set_mode((820, 580), pygame.NOFRAME)
+pygame.display.set_caption('Clownfish 1 Engine')
+font = pygame.font.Font('data/fonts/calibri.ttf', 24)
 
 currBoard = chess.Board()
-moveCount = 0
+
+DARKORANGE = (183, 65, 14)
+LIGHTORANGE = (140,65,0)
 
 pieces = {'p': pygame.image.load('data/images/b_pawn.png'),
           'n': pygame.image.load('data/images/b_knight.png'),
@@ -30,22 +33,40 @@ pieces = {'p': pygame.image.load('data/images/b_pawn.png'),
 
 wSquare = pygame.image.load('data/images/w_square.png')
 dSquare = pygame.image.load('data/images/d_square.png')
+engineIcon = pygame.image.load('data/images/clownfishengine.png')
+x60Icon = pygame.image.load('data/images/60x60engine.png') 
 
 startPos = list(chess.STARTING_BOARD_FEN.split("/"))
-screen.fill("black")
+
+aiText = font.render('Black: Clownfish Depth 3', True, 'white')
+plrText = font.render('White: Player', True, 'white')
+titleText = font.render('Clownfish 1 Engine', True, 'white')
+
+screen.fill(LIGHTORANGE)
 
     # Board Coords
-    # Top Left 20, 20 
-    # Bottom Right 500, 500
-    # Top Right 500, 20
-    # Bottom Left 20, 500
+    # Top Left 20, 80 
+    # Bottom Right 500, 560
+    # Top Right 500, 80
+    # Bottom Left 20, 560
 
         
+def drawTaskbar():
+    pygame.draw.rect(screen,(DARKORANGE), pygame.Rect(20,20,780,40))
+    screen.blit(x60Icon, (10,12.5))
+    screen.blit(titleText, (80,30))
+    pygame.draw.rect(screen,'black', pygame.Rect(760,20,40,40))
+
+def drawSidebar():
+    screen.blit(plrText, (520, 90))
+    screen.blit(aiText, (520, 130))
+
+
 def drawPieces(pos, started=False):
     if started:
         drawBoard(True)
     x = 20
-    y = -40
+    y = 20
     for i in range(len(pos)):
         x = 20
         y += 60
@@ -64,9 +85,11 @@ def drawPieces(pos, started=False):
                     x += ((int(currRow[j])) * 60) - 60
             x += 60
 
+
+
 def drawBoard(started=False):
     x = 20
-    y = -40
+    y = 20
     for i in range(8):
         x = 20
         y += 60
@@ -82,6 +105,8 @@ def drawBoard(started=False):
 
 
 drawBoard(False)
+drawSidebar()
+drawTaskbar()
 pygame.display.flip()
         
 
@@ -196,9 +221,9 @@ def main(board, aiColor):
             boardPos = list((board.fen()).split("/"))
             drawPieces(boardPos, True)
             aiBeforeX = (60*((aiMove.from_square)%8)) + 20
-            aiBeforeY = (60*(7-(aiMove.from_square)//8)) + 20
+            aiBeforeY = (60*(7-(aiMove.from_square)//8)) + 80
             aiAfterX = (60*((aiMove.to_square)%8)) + 20
-            aiAfterY = (60*(7-(aiMove.to_square)//8)) + 20
+            aiAfterY = (60*(7-(aiMove.to_square)//8)) + 80
             pygame.draw.rect(screen,"green",pygame.Rect(aiBeforeX, aiBeforeY,60,60),5)
             pygame.draw.rect(screen,"green",pygame.Rect(aiAfterX, aiAfterY,60,60),5)
             pygame.display.flip()
@@ -207,51 +232,58 @@ def main(board, aiColor):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     playing = False
+                if event.type == pygame.KEYDOWN:
+                    if (event.key == pygame.K_ESCAPE) or  (event.type == pygame.QUIT):
+                        playing = False
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     drawPieces(boardPos, True)
                     mousePos = pygame.mouse.get_pos()
+                    print(mousePos)
+                    if ((mousePos[0] >= 20) and (mousePos[0] <= 500)) and ((mousePos[1] >= 80) and (mousePos[1] <= 560)):
+                        squareSelected = ((math.floor((mousePos[0]- 20)/60)) ,(math.floor((mousePos[1]-80)/60)))
+                        #print(squareSelected)
+                        index = (7-squareSelected[1])*8+(squareSelected[0])
+                        #print(index)
+                        if index in posMoves:
+                            move = moves[posMoves.index(index)]
+                            board.push(move)
+                            before = move.from_square
+                            beforeX = (60*(before%8)) + 20
+                            beforeY = (60*(7-before//8)) + 80
+                            MafterX = (60*((move.to_square)%8)) + 20
+                            MafterY = (60*(7-(move.to_square)//8)) + 80
+                            boardPos = list((board.fen()).split("/"))
+                            drawPieces(boardPos, True)
+                            pygame.draw.rect(screen,"green",pygame.Rect(beforeX, beforeY,60,60),5)
+                            pygame.draw.rect(screen,"green",pygame.Rect(MafterX, MafterY,60,60),5)
+                            pygame.display.flip()
 
-                    squareSelected = ((math.floor((mousePos[0] - 20)/60)) ,(math.floor((mousePos[1]- 20)/60)))
-                    #print(squareSelected)
-                    index = (7-squareSelected[1])*8+(squareSelected[0])
-                    #print(index)
-
-                    if index in posMoves:
-                        move = moves[posMoves.index(index)]
-                        board.push(move)
-                        before = move.from_square
-                        beforeX = (60*(before%8)) + 20
-                        beforeY = (60*(7-before//8)) + 20
-                        MafterX = (60*((move.to_square)%8)) + 20
-                        MafterY = (60*(7-(move.to_square)//8)) + 20
-                        boardPos = list((board.fen()).split("/"))
-                        drawPieces(boardPos, True)
-                        pygame.draw.rect(screen,"green",pygame.Rect(beforeX, beforeY,60,60),5)
-                        pygame.draw.rect(screen,"green",pygame.Rect(MafterX, MafterY,60,60),5)
-                        pygame.display.flip()
-
-                        index = None
-                        posMoves = []
-                    
-                    else:
-                        pieceSelected = board.piece_at(index)
-
-                        if pieceSelected == None:
-                            pass
+                            index = None
+                            posMoves = []
+                        
                         else:
-                            legalMoves = list(board.legal_moves)
-                            moves = []
-                            for i in legalMoves:
-                                if i.from_square == index:
-                                    moves.append(i)
-                                    after = i.to_square
-                                    afterX = (60*(after%8)) + 20
-                                    afterY = (60*(7-after//8)) + 20
-                                    
-                                    pygame.draw.rect(screen,"blue",pygame.Rect(afterX,afterY,60,60),5)
-                                    pygame.display.flip()
-                            posMoves = [a.to_square for a in moves]
-                            #print(posMoves)
+                            pieceSelected = board.piece_at(index)
+
+                            if pieceSelected == None:
+                                pass
+                            else:
+                                legalMoves = list(board.legal_moves)
+                                moves = []
+                                for i in legalMoves:
+                                    if i.from_square == index:
+                                        moves.append(i)
+                                        after = i.to_square
+                                        afterX = (60*(after%8)) + 20
+                                        afterY = (60*(7-after//8)) + 80
+                                        
+                                        pygame.draw.rect(screen,"blue",pygame.Rect(afterX,afterY,60,60),5)
+                                        pygame.display.flip()
+                                posMoves = [a.to_square for a in moves]
+                                #print(posMoves)
+                    elif ((mousePos[0] >= 760) and (mousePos[0] <= 800)) and ((mousePos[1] >= 20) and (mousePos[1] <= 60)):
+                        playing = False
+                    else:
+                        pass
             if board.outcome() != None:
                 print(board.outcome())
                 playing = False
