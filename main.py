@@ -8,11 +8,11 @@ import time
 
 pygame.init()
 screen = pygame.display.set_mode((820, 580), pygame.NOFRAME)
-pygame.display.set_caption('Clownfish 1 Engine')
+pygame.display.set_caption('Clownfish 3')
 font = pygame.font.Font('data/fonts/calibri.ttf', 24)
 
 currBoard = chess.Board()
-
+aiColor = False
 DARKORANGE = (183, 65, 14)
 LIGHTORANGE = (140,65,0)
 
@@ -38,9 +38,22 @@ x60Icon = pygame.image.load('data/images/60x60engine.png')
 
 startPos = list(chess.STARTING_BOARD_FEN.split("/"))
 
-aiText = font.render('Black: Clownfish Depth 3', True, 'white')
-plrText = font.render('White: Player', True, 'white')
-titleText = font.render('Clownfish 1 Engine', True, 'white')
+if currBoard.turn == aiColor:
+    if currBoard.turn == False:
+        blackText = "Black: Clownfish Depth 3"
+        whiteText = "White: Player"
+    if currBoard.turn == True:
+        blackText = "Black: Player"
+        whiteText = "White: Clownfish Depth 3"
+elif currBoard.turn != aiColor:
+    if currBoard.turn == False:
+        blackText = "Black: Player"
+        whiteText = "White: Clownfish Depth 3"
+    if currBoard.turn == True:
+        blackText = "Black: Clownfish Depth 3"
+        whiteText = "White: Player"
+
+titleText = font.render('Clownfish 3', True, 'white')
 
 screen.fill(LIGHTORANGE)
 
@@ -58,8 +71,8 @@ def drawTaskbar():
     pygame.draw.rect(screen,'black', pygame.Rect(760,20,40,40))
 
 def drawSidebar():
-    screen.blit(plrText, (520, 90))
-    screen.blit(aiText, (520, 130))
+    screen.blit(font.render(whiteText, True, 'white'), (520, 90))
+    screen.blit(font.render(blackText, True, 'white'), (520, 130))
 
 
 def drawPieces(pos, started=False):
