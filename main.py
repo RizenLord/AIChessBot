@@ -2,17 +2,25 @@ import chess
 import chess.svg
 import chess.polyglot
 import pygame
+import pygame_gui
 import math
 from copy import deepcopy
 import time
+from pygame._sdl2 import Window
+
+
 
 pygame.init()
 screen = pygame.display.set_mode((820, 580), pygame.NOFRAME)
+guiManager = pygame_gui.UIManager((820,580))
+pgwindow = Window.from_display_module() #call this after set_mode
+pgwindow.position = (100,100) #tuple of your choice, can be changed whenever
 pygame.display.set_caption('Clownfish 3')
-font = pygame.font.Font('data/fonts/calibri.ttf', 24)
+bigFont = pygame.font.Font('data/fonts/calibri.ttf', 24)
+smallFont = pygame.font.Font('data/fonts/calibri.ttf', 18)
 
 currBoard = chess.Board()
-aiColor = False
+aiColor = True
 DARKORANGE = (183, 65, 14)
 LIGHTORANGE = (140,65,0)
 
@@ -53,7 +61,7 @@ elif currBoard.turn != aiColor:
         blackText = "Black: Clownfish Depth 3"
         whiteText = "White: Player"
 
-titleText = font.render('Clownfish 3', True, 'white')
+titleText = bigFont.render('Clownfish 3', True, 'white')
 
 screen.fill(LIGHTORANGE)
 
@@ -71,9 +79,14 @@ def drawTaskbar():
     pygame.draw.rect(screen,'black', pygame.Rect(760,20,40,40))
 
 def drawSidebar():
-    screen.blit(font.render(whiteText, True, 'white'), (520, 90))
-    screen.blit(font.render(blackText, True, 'white'), (520, 130))
+    pygame.draw.rect(screen, (DARKORANGE), pygame.Rect(520, 80, 280, 480))
+    screen.blit(bigFont.render(whiteText, True, 'white'), (525, 90))
+    screen.blit(bigFont.render(blackText, True, 'white'), (525, 130))
+    screen.blit(smallFont.render('Moves:', True,'white'), (525, 160))
+    moveList = pygame.draw.rect(screen, ('white'), pygame.Rect(530, 180, 260, 160))
 
+def updateMoveList():
+    return
 
 def drawPieces(pos, started=False):
     if started:
@@ -120,6 +133,7 @@ def drawBoard(started=False):
 drawBoard(False)
 drawSidebar()
 drawTaskbar()
+guiManager.draw_ui(screen)
 pygame.display.flip()
         
 
@@ -295,6 +309,8 @@ def main(board, aiColor):
                                 #print(posMoves)
                     elif ((mousePos[0] >= 760) and (mousePos[0] <= 800)) and ((mousePos[1] >= 20) and (mousePos[1] <= 60)):
                         playing = False
+                    elif ((mousePos[0] <= 820) and (mousePos[0] >= 0)) and ((mousePos[1] <= 20) and (mousePos[1] >= 0)):
+                        pass
                     else:
                         pass
             if board.outcome() != None:
