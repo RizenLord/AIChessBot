@@ -18,7 +18,6 @@ bigFont = pygame.font.Font('data/fonts/calibri.ttf', 24)
 smallFont = pygame.font.Font('data/fonts/calibri.ttf', 18)
 
 currBoard = chess.Board()
-moveList = ["hi", "hu", "howdy"]
 aiColor = True
 DARKORANGE = (183, 65, 14)
 LIGHTORANGE = (140,65,0)
