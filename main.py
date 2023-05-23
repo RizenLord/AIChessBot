@@ -6,20 +6,19 @@ import pygame_gui
 import math
 from copy import deepcopy
 import time
-from pygame._sdl2 import Window
 
 
 
 pygame.init()
+
 screen = pygame.display.set_mode((820, 580), pygame.NOFRAME)
-guiManager = pygame_gui.UIManager((820,580))
-pgwindow = Window.from_display_module() #call this after set_mode
-pgwindow.position = (100,100) #tuple of your choice, can be changed whenever
+
 pygame.display.set_caption('Clownfish 3')
 bigFont = pygame.font.Font('data/fonts/calibri.ttf', 24)
 smallFont = pygame.font.Font('data/fonts/calibri.ttf', 18)
 
 currBoard = chess.Board()
+moveList = ["hi", "hu", "howdy"]
 aiColor = True
 DARKORANGE = (183, 65, 14)
 LIGHTORANGE = (140,65,0)
@@ -63,7 +62,10 @@ elif currBoard.turn != aiColor:
 
 titleText = bigFont.render('Clownfish 3', True, 'white')
 
-screen.fill(LIGHTORANGE)
+background = pygame.Surface((820,580))
+background.fill(LIGHTORANGE)
+
+guiManager = pygame_gui.UIManager((820,580))
 
     # Board Coords
     # Top Left 20, 80 
@@ -71,21 +73,26 @@ screen.fill(LIGHTORANGE)
     # Top Right 500, 80
     # Bottom Left 20, 560
 
-        
+
+moveListOBJ = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((530,200),(260,280)), html_text='', manager=guiManager)
+
+clock = pygame.time.Clock()
+
+
 def drawTaskbar():
     pygame.draw.rect(screen,(DARKORANGE), pygame.Rect(20,20,780,40))
     screen.blit(x60Icon, (10,12.5))
     screen.blit(titleText, (80,30))
-    pygame.draw.rect(screen,'black', pygame.Rect(760,20,40,40))
+    pygame.draw.rect(screen,'red', pygame.Rect(760,25,30,30))
+    screen.blit(bigFont.render("X", True,'black'), (769,30))
 
 def drawSidebar():
     pygame.draw.rect(screen, (DARKORANGE), pygame.Rect(520, 80, 280, 480))
     screen.blit(bigFont.render(whiteText, True, 'white'), (525, 90))
     screen.blit(bigFont.render(blackText, True, 'white'), (525, 130))
-    screen.blit(smallFont.render('Moves:', True,'white'), (525, 160))
-    moveList = pygame.draw.rect(screen, ('white'), pygame.Rect(530, 180, 260, 160))
+    screen.blit(smallFont.render('Moves:', True,'white'), (525, 175))
 
-def updateMoveList():
+def updateMoveList(list):
     return
 
 def drawPieces(pos, started=False):
@@ -129,13 +136,11 @@ def drawBoard(started=False):
         drawPieces(startPos, False)
     started = True
 
-
+screen.blit(background,(0,0))
 drawBoard(False)
 drawSidebar()
 drawTaskbar()
-guiManager.draw_ui(screen)
-pygame.display.flip()
-        
+pygame.display.update()
 
     # Opening Book, Purely so the Engine can make intelligent Opening Moves
 reader = chess.polyglot.open_reader("data/polyglot/baron30.bin")
@@ -235,16 +240,20 @@ def getPLRmove(legalMoves):
 def main(board, aiColor):
     playing = True
     boardPos = list((board.fen()).split("/"))
-
+    #moveList = []
     posMoves = []
+    moveCount = 1
 
     while playing:
+        time_delta = clock.tick(60)/1000.0
         drawPieces(boardPos)
 
         if board.turn == aiColor:
             aiMove = engineDepth(currBoard, 3)
             time.sleep(1)
             board.push(aiMove)
+            moveListOBJ.append_html_text(", " + str(aiMove))
+            moveCount+=1
             boardPos = list((board.fen()).split("/"))
             drawPieces(boardPos, True)
             aiBeforeX = (60*((aiMove.from_square)%8)) + 20
@@ -265,7 +274,7 @@ def main(board, aiColor):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     drawPieces(boardPos, True)
                     mousePos = pygame.mouse.get_pos()
-                    print(mousePos)
+                    #print(mousePos)
                     if ((mousePos[0] >= 20) and (mousePos[0] <= 500)) and ((mousePos[1] >= 80) and (mousePos[1] <= 560)):
                         squareSelected = ((math.floor((mousePos[0]- 20)/60)) ,(math.floor((mousePos[1]-80)/60)))
                         #print(squareSelected)
@@ -274,6 +283,7 @@ def main(board, aiColor):
                         if index in posMoves:
                             move = moves[posMoves.index(index)]
                             board.push(move)
+                            moveListOBJ.append_html_text(" " + str(moveCount) + ". " + str(move))
                             before = move.from_square
                             beforeX = (60*(before%8)) + 20
                             beforeY = (60*(7-before//8)) + 80
@@ -307,12 +317,15 @@ def main(board, aiColor):
                                         pygame.display.flip()
                                 posMoves = [a.to_square for a in moves]
                                 #print(posMoves)
-                    elif ((mousePos[0] >= 760) and (mousePos[0] <= 800)) and ((mousePos[1] >= 20) and (mousePos[1] <= 60)):
+                    elif ((mousePos[0] >= 760) and (mousePos[0] <= 790)) and ((mousePos[1] >= 25) and (mousePos[1] <= 55)):
                         playing = False
-                    elif ((mousePos[0] <= 820) and (mousePos[0] >= 0)) and ((mousePos[1] <= 20) and (mousePos[1] >= 0)):
+                else:
                         pass
-                    else:
-                        pass
+                guiManager.process_events(event)
+                
+            guiManager.update(time_delta)
+            guiManager.draw_ui(screen)
+            pygame.display.update()
             if board.outcome() != None:
                 print(board.outcome())
                 playing = False
